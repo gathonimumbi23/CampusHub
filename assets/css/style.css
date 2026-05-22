@@ -1,0 +1,194 @@
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:#f5f7fb;
+    margin:0;
+    padding:0;
+}
+
+/* Navbar */
+
+.navbar{
+    background:linear-gradient(90deg,#5b2be0,#7b68ee);
+    padding:15px 30px;
+    box-shadow:0px 4px 15px rgba(0,0,0,0.1);
+}
+
+.navbar-brand{
+    font-size:28px;
+    font-weight:700;
+    color:white !important;
+}
+
+.nav-link{
+    color:white !important;
+    font-weight:500;
+    margin-left:15px;
+}
+
+.nav-link:hover{
+    color:#ffd166 !important;
+}
+
+/* Hero section */
+
+.hero-section{
+    height:80vh;
+
+    background:linear-gradient(
+    rgba(91,43,224,.75),
+    rgba(123,104,238,.75)),
+    url('../images/hero-bg.jpg');
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+
+    color:white;
+    text-align:center;
+}
+
+.hero-section h1{
+    font-size:55px;
+    font-weight:700;
+}
+
+.hero-section p{
+    font-size:20px;
+    max-width:700px;
+}
+
+.hero-btn{
+    background:#ff9f1c;
+    color:white;
+    border:none;
+    padding:14px 35px;
+    border-radius:30px;
+    font-weight:bold;
+    margin-top:20px;
+}
+
+.hero-btn:hover{
+    background:#ffbf69;
+}
+
+/* Categories */
+
+.section-title{
+    font-weight:700;
+    margin-top:60px;
+    margin-bottom:40px;
+}
+
+.category-card{
+
+    background:white;
+    border-radius:20px;
+    text-align:center;
+    padding:25px;
+    box-shadow:0px 5px 15px rgba(0,0,0,0.1);
+
+    transition:.3s;
+}
+
+.category-card:hover{
+
+transform:translateY(-10px);
+
+}
+
+/* Product cards */
+
+.card{
+
+border-radius:20px;
+overflow:hidden;
+box-shadow:0px 5px 20px rgba(0,0,0,0.1);
+transition:.3s;
+border:none;
+
+}
+
+.card:hover{
+
+transform:translateY(-10px);
+
+}
+
+.card img{
+
+height:220px;
+object-fit:cover;
+
+}
+
+.card-title{
+
+font-weight:600;
+
+}
+
+.price{
+
+color:#5b2be0;
+font-size:20px;
+font-weight:bold;
+
+}
+
+.vendor{
+
+color:gray;
+
+}
+
+.btn-primary{
+
+background:#5b2be0;
+border:none;
+border-radius:30px;
+padding:10px 20px;
+
+}
+
+.btn-primary:hover{
+
+background:#7b68ee;
+
+}
+
+/* Footer */
+
+.footer{
+
+margin-top:70px;
+background:#20232a;
+padding:30px;
+color:white;
+text-align:center;
+
+}
+
+/* Mobile responsiveness */
+
+@media(max-width:768px){
+
+.hero-section h1{
+
+font-size:35px;
+
+}
+
+.hero-section p{
+
+font-size:16px;
+
+}
+
+}
