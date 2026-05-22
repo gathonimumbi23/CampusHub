@@ -1,46 +1,86 @@
 <?php
 require_once 'includes/config.php';
 
-$full_name = $email = $password = $confirm_password = $role = $phone = "";
-$full_name_err = $email_err = $password_err = $confirm_password_err = $role_err = "";
+$full_name = $student_id = $email = $password = $confirm_password = $role = $phone = "";
+$full_name_err = $student_id_err = $email_err = $password_err = $confirm_password_err = $role_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+    // Full name
     if(empty(trim($_POST["full_name"]))){
         $full_name_err = "Please enter your full name.";
     } else {
         $full_name = trim($_POST["full_name"]);
     }
 
-    if(empty(trim($_POST["email"]))){
-        $email_err = "Please enter an email.";
+    // Student ID validation
+    if(empty(trim($_POST["student_id"]))){
+        $student_id_err = "Please enter your student ID.";
     } else {
-        $sql = "SELECT user_id FROM users WHERE email = ?";
-        if($stmt = mysqli_prepare($link, $sql)){
-            mysqli_stmt_bind_param($stmt, "s", $param_email);
-            $param_email = trim($_POST["email"]);
-            if(mysqli_stmt_execute($stmt)){
+        $student_id = strtoupper(trim($_POST["student_id"]));
+        // MKU admission format: letters/year/numbers e.g. BSCCS/2024/56764
+        if(!preg_match('/^[A-Z]+\/[0-9]{4}\/[0-9]+$/', $student_id)){
+            $student_id_err = "Invalid student ID format. Example: BSCCS/2024/56764";
+        } else {
+            // Check if student ID already registered
+            $sql_check = "SELECT user_id FROM users WHERE student_id = ?";
+            if($stmt = mysqli_prepare($link, $sql_check)){
+                mysqli_stmt_bind_param($stmt, "s", $student_id);
+                mysqli_stmt_execute($stmt);
                 mysqli_stmt_store_result($stmt);
                 if(mysqli_stmt_num_rows($stmt) == 1){
-                    $email_err = "This email is already taken.";
-                } else {
-                    $email = trim($_POST["email"]);
+                    $student_id_err = "This student ID is already registered.";
                 }
+                mysqli_stmt_close($stmt);
+            }
+        }
+    }
+
+    // Email validation - must match MKU format derived from student ID
+if(empty(trim($_POST["email"]))){
+    $email_err = "Please enter your MKU student email.";
+} else {
+    $email = strtolower(trim($_POST["email"]));
+
+    // Generate expected email from student ID (remove slashes, lowercase, add @mku.ac.ke)
+    $expected_email = "";
+    if(!empty($student_id) && empty($student_id_err)){
+        $expected_email = strtolower(str_replace('/', '', $student_id)) . '@mku.ac.ke';
+    }
+
+    // Check email ends with @mku.ac.ke
+    if(!preg_match('/^[a-z0-9]+@mku\.ac\.ke$/', $email)){
+        $email_err = "Only MKU emails accepted. Format: " . ($expected_email ?: "bsccs202456764@mku.ac.ke");
+    // Check email matches the student ID
+    } elseif(!empty($expected_email) && $email !== $expected_email){
+        $email_err = "Your email must match your Student ID. Expected: " . $expected_email;
+    } else {
+        // Check if email already taken
+        $sql = "SELECT user_id FROM users WHERE email = ?";
+        if($stmt = mysqli_prepare($link, $sql)){
+            mysqli_stmt_bind_param($stmt, "s", $email);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_store_result($stmt);
+            if(mysqli_stmt_num_rows($stmt) == 1){
+                $email_err = "This email is already registered.";
             }
             mysqli_stmt_close($stmt);
         }
     }
+}
 
+    // Password
     if(empty(trim($_POST["password"]))){
         $password_err = "Please enter a password.";
     } elseif(strlen(trim($_POST["password"])) < 6){
-        $password_err = "Password must have at least 6 characters.";
+        $password_err = "Password must be at least 6 characters.";
     } else {
         $password = trim($_POST["password"]);
     }
 
+    // Confirm password
     if(empty(trim($_POST["confirm_password"]))){
-        $confirm_password_err = "Please confirm password.";
+        $confirm_password_err = "Please confirm your password.";
     } else {
         $confirm_password = trim($_POST["confirm_password"]);
         if(empty($password_err) && ($password != $confirm_password)){
@@ -48,6 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
+    // Role
     if(empty($_POST["role"])){
         $role_err = "Please select a role.";
     } else {
@@ -56,20 +97,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $phone = trim($_POST["phone"]);
 
-    if(empty($full_name_err) && empty($email_err) && empty($password_err) && empty($confirm_password_err) && empty($role_err)){
-        $sql = "INSERT INTO users (full_name, email, password, role, phone) VALUES (?, ?, ?, ?, ?)";
+    // Insert if no errors
+    if(empty($full_name_err) && empty($student_id_err) && empty($email_err) && 
+       empty($password_err) && empty($confirm_password_err) && empty($role_err)){
+        
+        $sql = "INSERT INTO users (full_name, student_id, email, password, role, phone) VALUES (?, ?, ?, ?, ?, ?)";
         if($stmt = mysqli_prepare($link, $sql)){
-            mysqli_stmt_bind_param($stmt, "sssss", $param_full_name, $param_email, $param_password, $param_role, $param_phone);
-            $param_full_name = $full_name;
-            $param_email     = $email;
-            $param_password  = password_hash($password, PASSWORD_DEFAULT);
-            $param_role      = $role;
-            $param_phone     = $phone;
+            mysqli_stmt_bind_param($stmt, "ssssss", $p_name, $p_sid, $p_email, $p_pass, $p_role, $p_phone);
+            $p_name  = $full_name;
+            $p_sid   = $student_id;
+            $p_email = $email;
+            $p_pass  = password_hash($password, PASSWORD_DEFAULT);
+            $p_role  = $role;
+            $p_phone = $phone;
+
             if(mysqli_stmt_execute($stmt)){
                 header("location: login.php");
                 exit;
             } else {
-                echo "Something went wrong. Please try again later.";
+                echo "Something went wrong. Please try again.";
             }
             mysqli_stmt_close($stmt);
         }
@@ -130,6 +176,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .role-option:hover { border-color: #5b2be0; background: #f5f0ff; }
         .role-option input { display: none; }
         .role-option.selected { border-color: #5b2be0; background: #f0ebff; }
+        .mku-badge {
+            background: #ede9fe;
+            color: #5b2be0;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -139,8 +195,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="register-wrapper">
     <div class="register-card card">
         <div class="card-body">
-            <h2 class="register-title text-center">Join CampusHub</h2>
-            <p class="text-center text-muted mb-4">Create your account to buy or sell on campus</p>
+            <h2 class="register-title text-center">🎓 Join CampusHub</h2>
+            <p class="text-center text-muted mb-2">Mount Kenya University Students Only</p>
+            <div class="text-center">
+                <span class="mku-badge">🔒 Verified MKU Campus Marketplace</span>
+            </div>
 
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
 
@@ -154,11 +213,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Email Address</label>
+                    <label class="form-label fw-semibold">Student ID / Admission Number</label>
+                    <input type="text" name="student_id"
+                           class="form-control <?php echo (!empty($student_id_err)) ? 'is-invalid' : ''; ?>"
+                           placeholder="e.g. BSCCS/2024/56764"
+                           value="<?php echo htmlspecialchars($student_id); ?>">
+                    <span class="invalid-feedback"><?php echo $student_id_err; ?></span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">MKU Student Email</label>
                     <input type="email" name="email"
                            class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>"
-                           placeholder="you@example.com"
+                           placeholder="you@students.mku.ac.ke"
                            value="<?php echo htmlspecialchars($email); ?>">
+                    <div class="form-text">Only @mku.ac.ke or @students.mku.ac.ke emails accepted</div>
                     <span class="invalid-feedback"><?php echo $email_err; ?></span>
                 </div>
 
