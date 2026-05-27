@@ -6,70 +6,64 @@ $full_name_err = $student_id_err = $email_err = $password_err = $confirm_passwor
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // Full name
     if(empty(trim($_POST["full_name"]))){
         $full_name_err = "Please enter your full name.";
     } else {
         $full_name = trim($_POST["full_name"]);
     }
 
-    // Student ID validation
     if(empty(trim($_POST["student_id"]))){
-        $student_id_err = "Please enter your student ID.";
+        $student_id_err = "Please enter your admission number.";
     } else {
         $student_id = strtoupper(trim($_POST["student_id"]));
-        // MKU admission format: letters/year/numbers e.g. BSCCS/2024/56764
         if(!preg_match('/^[A-Z]+\/[0-9]{4}\/[0-9]+$/', $student_id)){
-            $student_id_err = "Invalid student ID format. Example: BSCCS/2024/56764";
+            $student_id_err = "Invalid format. Example: BIT/2020/12345";
         } else {
-            // Check if student ID already registered
             $sql_check = "SELECT user_id FROM users WHERE student_id = ?";
             if($stmt = mysqli_prepare($link, $sql_check)){
                 mysqli_stmt_bind_param($stmt, "s", $student_id);
                 mysqli_stmt_execute($stmt);
                 mysqli_stmt_store_result($stmt);
                 if(mysqli_stmt_num_rows($stmt) == 1){
-                    $student_id_err = "This student ID is already registered.";
+                    $student_id_err = "This admission number is already registered.";
                 }
                 mysqli_stmt_close($stmt);
             }
         }
     }
 
-    // Email validation - must match MKU format derived from student ID
-if(empty(trim($_POST["email"]))){
-    $email_err = "Please enter your MKU student email.";
-} else {
-    $email = strtolower(trim($_POST["email"]));
-
-    // Generate expected email from student ID (remove slashes, lowercase, add @mku.ac.ke)
-    $expected_email = "";
-    if(!empty($student_id) && empty($student_id_err)){
-        $expected_email = strtolower(str_replace('/', '', $student_id)) . '@mku.ac.ke';
-    }
-
-    // Check email ends with @mku.ac.ke
-    if(!preg_match('/^[a-z0-9]+@mku\.ac\.ke$/', $email)){
-        $email_err = "Only MKU emails accepted. Format: " . ($expected_email ?: "bsccs202456764@mku.ac.ke");
-    // Check email matches the student ID
-    } elseif(!empty($expected_email) && $email !== $expected_email){
-        $email_err = "Your email must match your Student ID. Expected: " . $expected_email;
+    if(empty(trim($_POST["email"]))){
+        $email_err = "Please enter your MKU email.";
     } else {
-        // Check if email already taken
-        $sql = "SELECT user_id FROM users WHERE email = ?";
-        if($stmt = mysqli_prepare($link, $sql)){
-            mysqli_stmt_bind_param($stmt, "s", $email);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_store_result($stmt);
-            if(mysqli_stmt_num_rows($stmt) == 1){
-                $email_err = "This email is already registered.";
+        $email = strtolower(trim($_POST["email"]));
+        $expected_email = "";
+        if(!empty($student_id) && empty($student_id_err)){
+            $expected_email = strtolower(str_replace('/', '', $student_id)) . '@mku.ac.ke';
+        }
+        if(!preg_match('/^[a-z0-9]+@mku\.ac\.ke$/', $email)){
+            $email_err = "Only @mku.ac.ke emails accepted. Expected: " . ($expected_email ?: "bit202012345@mku.ac.ke");
+        } elseif(!empty($expected_email) && $email !== $expected_email){
+            $email_err = "Email must match your admission number. Expected: " . $expected_email;
+        } else {
+            $sql = "SELECT user_id FROM users WHERE email = ?";
+            if($stmt = mysqli_prepare($link, $sql)){
+                mysqli_stmt_bind_param($stmt, "s", $email);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_store_result($stmt);
+                if(mysqli_stmt_num_rows($stmt) == 1){
+                    $email_err = "This email is already registered.";
+                }
+                mysqli_stmt_close($stmt);
             }
-            mysqli_stmt_close($stmt);
         }
     }
-}
 
-    // Password
+    if(empty(trim($_POST["phone"]))){
+        $phone = "";
+    } else {
+        $phone = trim($_POST["phone"]);
+    }
+
     if(empty(trim($_POST["password"]))){
         $password_err = "Please enter a password.";
     } elseif(strlen(trim($_POST["password"])) < 6){
@@ -78,29 +72,23 @@ if(empty(trim($_POST["email"]))){
         $password = trim($_POST["password"]);
     }
 
-    // Confirm password
     if(empty(trim($_POST["confirm_password"]))){
         $confirm_password_err = "Please confirm your password.";
     } else {
         $confirm_password = trim($_POST["confirm_password"]);
         if(empty($password_err) && ($password != $confirm_password)){
-            $confirm_password_err = "Passwords did not match.";
+            $confirm_password_err = "Passwords do not match.";
         }
     }
 
-    // Role
     if(empty($_POST["role"])){
         $role_err = "Please select a role.";
     } else {
         $role = $_POST["role"];
     }
 
-    $phone = trim($_POST["phone"]);
-
-    // Insert if no errors
-    if(empty($full_name_err) && empty($student_id_err) && empty($email_err) && 
+    if(empty($full_name_err) && empty($student_id_err) && empty($email_err) &&
        empty($password_err) && empty($confirm_password_err) && empty($role_err)){
-        
         $sql = "INSERT INTO users (full_name, student_id, email, password, role, phone) VALUES (?, ?, ?, ?, ?, ?)";
         if($stmt = mysqli_prepare($link, $sql)){
             mysqli_stmt_bind_param($stmt, "ssssss", $p_name, $p_sid, $p_email, $p_pass, $p_role, $p_phone);
@@ -110,9 +98,8 @@ if(empty(trim($_POST["email"]))){
             $p_pass  = password_hash($password, PASSWORD_DEFAULT);
             $p_role  = $role;
             $p_phone = $phone;
-
             if(mysqli_stmt_execute($stmt)){
-                header("location: login.php");
+                header("location: login.php?registered=1");
                 exit;
             } else {
                 echo "Something went wrong. Please try again.";
@@ -129,179 +116,280 @@ if(empty(trim($_POST["email"]))){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - CampusHub</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="assets/css/auth.css">
     <style>
-        .register-wrapper {
-            min-height: 90vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 0;
+        /* Scrollable right side for longer form */
+       .auth-right {
+    overflow-y: auto;
+    padding: 40px 50px;
+}
+
+body {
+    overflow-y: auto;
+    height: auto;
+}
+
+.auth-wrapper {
+    min-height: 100vh;
+    height: auto;
+}
+        /* Password strength bar */
+        .pwd-strength-wrap {
+            margin-top: 6px;
+            height: 4px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
         }
-        .register-card {
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(91,43,224,0.15);
-            border: none;
-            width: 100%;
-            max-width: 580px;
+        .pwd-strength-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: 0.4s;
         }
-        .register-card .card-body { padding: 40px; }
-        .register-title {
-            font-weight: 700;
-            color: #5b2be0;
-            margin-bottom: 5px;
-        }
-        .btn-register {
-            background: linear-gradient(90deg, #5b2be0, #7b68ee);
-            border: none;
-            border-radius: 30px;
-            padding: 12px 30px;
-            font-weight: 600;
-            color: white;
-        }
-        .btn-register:hover { background: #7b68ee; color: white; }
-        .form-control:focus, .form-select:focus {
-            border-color: #7b68ee;
-            box-shadow: 0 0 0 0.2rem rgba(91,43,224,0.2);
-        }
-        .role-option {
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            padding: 15px;
-            cursor: pointer;
-            transition: .3s;
-            text-align: center;
-            display: block;
-        }
-        .role-option:hover { border-color: #5b2be0; background: #f5f0ff; }
-        .role-option input { display: none; }
-        .role-option.selected { border-color: #5b2be0; background: #f0ebff; }
-        .mku-badge {
-            background: #ede9fe;
-            color: #5b2be0;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: inline-block;
+        .pwd-strength-label {
+            font-size: 11px;
+            color: gray;
+            margin-top: 3px;
         }
     </style>
 </head>
 <body>
 
-<?php include 'includes/navbar.php'; ?>
+<div class="auth-wrapper">
 
-<div class="register-wrapper">
-    <div class="register-card card">
-        <div class="card-body">
-            <h2 class="register-title text-center">🎓 Join CampusHub</h2>
-            <p class="text-center text-muted mb-2">Mount Kenya University Students Only</p>
-            <div class="text-center">
-                <span class="mku-badge">🔒 Verified MKU Campus Marketplace</span>
+    <!-- ===== LEFT SIDE ===== -->
+    <div class="auth-left">
+        <div class="auth-brand">
+            <div class="auth-brand-icon">
+                <i class="bi bi-bag-heart-fill"></i>
+            </div>
+            <span class="auth-brand-name">CampusHub</span>
+        </div>
+
+        <h1 class="auth-headline">
+            Join the MKU<br>
+            <span>Student Marketplace</span>
+        </h1>
+
+        <div class="auth-illustration">
+
+            <div class="float-badge float-badge-top">
+                <div class="badge-icon purple">
+                    <i class="bi bi-shield-check" style="color:#5b2be0;font-size:12px;"></i>
+                </div>
+                <div>
+                    <div class="badge-value">MKU Verified</div>
+                    <div class="badge-label">Students Only</div>
+                </div>
             </div>
 
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Full Name</label>
-                    <input type="text" name="full_name"
-                           class="form-control <?php echo (!empty($full_name_err)) ? 'is-invalid' : ''; ?>"
-                           placeholder="Your full name"
-                           value="<?php echo htmlspecialchars($full_name); ?>">
-                    <span class="invalid-feedback"><?php echo $full_name_err; ?></span>
+            <div class="illus-placeholder">
+                <div style="text-align:center;">
+                    <div style="font-size:65px;">🎓</div>
+                    <div style="font-size:28px;margin-top:8px;">🛒 🏪 💼</div>
+                    <div style="font-size:13px;color:#5b2be0;font-weight:600;margin-top:10px;">Buy • Sell • Grow</div>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Student ID / Admission Number</label>
-                    <input type="text" name="student_id"
-                           class="form-control <?php echo (!empty($student_id_err)) ? 'is-invalid' : ''; ?>"
-                           placeholder="e.g. BSCCS/2024/56764"
-                           value="<?php echo htmlspecialchars($student_id); ?>">
-                    <span class="invalid-feedback"><?php echo $student_id_err; ?></span>
+            <div class="float-badge float-badge-bottom">
+                <div class="badge-icon green">
+                    <i class="bi bi-people-fill" style="color:#4caf50;font-size:12px;"></i>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">MKU Student Email</label>
-                    <input type="email" name="email"
-                           class="form-control <?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>"
-                           placeholder="you@students.mku.ac.ke"
-                           value="<?php echo htmlspecialchars($email); ?>">
-                    <div class="form-text">Only @mku.ac.ke or @students.mku.ac.ke emails accepted</div>
-                    <span class="invalid-feedback"><?php echo $email_err; ?></span>
+                <div>
+                    <div class="badge-value">Free</div>
+                    <div class="badge-label">Always free to join</div>
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Phone Number</label>
-                    <input type="text" name="phone" class="form-control"
-                           placeholder="07XXXXXXXX"
-                           value="<?php echo htmlspecialchars($phone); ?>">
+        </div>
+
+        <!-- Steps -->
+        <div style="margin-top:30px;width:100%;max-width:380px;">
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+                <div style="width:28px;height:28px;background:#5b2be0;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">1</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;">Use your MKU admission number</div>
+                    <div style="font-size:12px;color:gray;">e.g. BIT/2020/12345</div>
                 </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Password</label>
-                        <input type="password" name="password"
-                               class="form-control <?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>"
-                               placeholder="Min. 6 characters">
-                        <span class="invalid-feedback"><?php echo $password_err; ?></span>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Confirm Password</label>
-                        <input type="password" name="confirm_password"
-                               class="form-control <?php echo (!empty($confirm_password_err)) ? 'is-invalid' : ''; ?>"
-                               placeholder="Repeat password">
-                        <span class="invalid-feedback"><?php echo $confirm_password_err; ?></span>
-                    </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+                <div style="width:28px;height:28px;background:#5b2be0;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">2</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;">Your MKU email is auto-generated</div>
+                    <div style="font-size:12px;color:gray;">bit202012345@mku.ac.ke</div>
                 </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-semibold">I want to:</label>
-                    <?php if(!empty($role_err)): ?>
-                        <div class="text-danger small mb-2"><?php echo $role_err; ?></div>
-                    <?php endif; ?>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <label class="role-option <?php echo ($role == 'Customer') ? 'selected' : ''; ?>">
-                                <input type="radio" name="role" value="Customer" <?php echo ($role == 'Customer') ? 'checked' : ''; ?>>
-                                <div style="font-size:28px">🛒</div>
-                                <div class="fw-semibold">Shop</div>
-                                <small class="text-muted">Buy products and services</small>
-                            </label>
-                        </div>
-                        <div class="col-6">
-                            <label class="role-option <?php echo ($role == 'Vendor') ? 'selected' : ''; ?>">
-                                <input type="radio" name="role" value="Vendor" <?php echo ($role == 'Vendor') ? 'checked' : ''; ?>>
-                                <div style="font-size:28px">🏪</div>
-                                <div class="fw-semibold">Sell</div>
-                                <small class="text-muted">List your products and services</small>
-                            </label>
-                        </div>
-                    </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+                <div style="width:28px;height:28px;background:#5b2be0;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">3</div>
+                <div>
+                    <div style="font-size:13px;font-weight:600;color:#1a1a2e;">Start buying or selling!</div>
+                    <div style="font-size:12px;color:gray;">Campus marketplace at your fingertips</div>
                 </div>
-
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn-register btn">Create Account</button>
-                    <button type="reset" class="btn btn-outline-secondary" style="border-radius:30px; padding:12px 25px;">Reset</button>
-                </div>
-
-                <p class="text-center text-muted mt-3">Already have an account? <a href="login.php" style="color:#5b2be0;">Login here</a></p>
-
-            </form>
+            </div>
         </div>
     </div>
+
+    <!-- ===== RIGHT SIDE ===== -->
+    <div class="auth-right">
+        <div class="auth-form-box">
+
+            <h2 class="auth-form-title">Create Account</h2>
+            <p class="auth-form-subtitle">Join thousands of MKU students already on CampusHub.</p>
+
+            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" id="registerForm">
+
+                <!-- Full Name -->
+                 <div id="name-preview" style="font-size:13px;color:#5b2be0;font-weight:600;margin-top:4px;min-height:18px;"></div>
+                <div class="auth-field">
+                    <label>Full Name</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-person"></i>
+                        <input type="text" name="full_name"
+                               id="full_name"
+                               placeholder="e.g. Rose Brenda Gathoni"
+                               class="<?php echo (!empty($full_name_err)) ? 'is-invalid' : ''; ?>"
+                               value="<?php echo htmlspecialchars($full_name); ?>">
+                    </div>
+                    <?php if(!empty($full_name_err)): ?>
+                    <span class="invalid-msg"><?php echo $full_name_err; ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Admission Number -->
+                <div class="auth-field">
+                    <label>Admission Number</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-credit-card"></i>
+                        <input type="text" name="student_id"
+                               id="admission_number"
+                               placeholder="e.g. BIT/2020/12345"
+                               class="<?php echo (!empty($student_id_err)) ? 'is-invalid' : ''; ?>"
+                               value="<?php echo htmlspecialchars($student_id); ?>">
+                    </div>
+                    <?php if(!empty($student_id_err)): ?>
+                    <span class="invalid-msg"><?php echo $student_id_err; ?></span>
+                    <?php endif; ?>
+                    
+                </div>
+
+                <!-- MKU Email -->
+<div class="auth-field">
+    <label>MKU Student Email</label>
+    <div class="auth-input-wrap">
+        <i class="bi bi-envelope"></i>
+        <input type="email" name="email"
+               id="mku_email"
+               placeholder="Auto-fills when you type admission number"
+               class="<?php echo (!empty($email_err)) ? 'is-invalid' : ''; ?>"
+               value="<?php echo htmlspecialchars($email); ?>">
+    </div>
+    <span id="email-status" style="font-size:12px;margin-top:4px;display:block;"></span>
+    <?php if(!empty($email_err)): ?>
+    <span class="invalid-msg"><?php echo $email_err; ?></span>
+    <?php endif; ?>
 </div>
 
-<?php include 'includes/footer.php'; ?>
+                <!-- Phone -->
+                <div class="auth-field">
+                    <label>Phone Number</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-phone"></i>
+                        <input type="text" name="phone"
+                               placeholder="07XXXXXXXX"
+                               value="<?php echo htmlspecialchars($phone); ?>">
+                    </div>
+                </div>
+
+                <!-- Password -->
+<div class="auth-field">
+    <label>Password</label>
+    <div class="auth-input-wrap">
+        <i class="bi bi-lock"></i>
+        <input type="password" name="password"
+               id="password"
+               placeholder="Min. 6 characters"
+               class="<?php echo (!empty($password_err)) ? 'is-invalid' : ''; ?>">
+        <button type="button" class="pwd-toggle"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#aaa;cursor:pointer;padding:0;">
+            <i class="bi bi-eye"></i>
+        </button>
+    </div>
+    <?php if(!empty($password_err)): ?>
+    <span class="invalid-msg"><?php echo $password_err; ?></span>
+    <?php endif; ?>
+    <div class="pwd-strength-wrap" style="margin-top:6px;">
+        <div class="pwd-strength-bar" id="pwd-strength"></div>
+    </div>
+    <span class="pwd-strength-label" id="pwd-label"></span>
+    <!-- Requirements checklist -->
+    <div id="pwd-requirements" style="margin-top:8px;display:flex;flex-direction:column;gap:4px;font-size:12px;"></div>
+</div>
+
+                <!-- Confirm Password -->
+                <div class="auth-field">
+                    <label>Confirm Password</label>
+                    <div class="auth-input-wrap">
+                        <i class="bi bi-lock-fill"></i>
+                        <input type="password" name="confirm_password"
+                               placeholder="Repeat your password"
+                               class="<?php echo (!empty($confirm_password_err)) ? 'is-invalid' : ''; ?>">
+                    </div>
+                    <?php if(!empty($confirm_password_err)): ?>
+                    <span class="invalid-msg"><?php echo $confirm_password_err; ?></span>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Role Selection -->
+                <div class="auth-field">
+                    <label>I want to:</label>
+                    <?php if(!empty($role_err)): ?>
+                    <span class="invalid-msg"><?php echo $role_err; ?></span>
+                    <?php endif; ?>
+                    <div class="role-grid">
+                        <div class="role-option <?php echo ($role=='Customer')?'selected':''; ?>">
+                            <input type="radio" name="role" value="Customer" <?php echo ($role=='Customer')?'checked':''; ?>>
+                            <div class="role-icon">🛒</div>
+                            <div class="role-name">Shop</div>
+                            <div class="role-desc">Buy products & services</div>
+                        </div>
+                        <div class="role-option <?php echo ($role=='Vendor')?'selected':''; ?>">
+                            <input type="radio" name="role" value="Vendor" <?php echo ($role=='Vendor')?'checked':''; ?>>
+                            <div class="role-icon">🏪</div>
+                            <div class="role-name">Sell</div>
+                            <div class="role-desc">List your products & services</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-auth">
+                    Create My Account
+                </button>
+
+            </form>
+
+            <!-- Divider -->
+            <div style="text-align:center;color:#ddd;margin:8px 0;font-size:13px;">— or —</div>
+
+            <!-- Login link -->
+            <a href="login.php" class="btn-auth-outline">Already have an account? Login</a>
+
+            <!-- Footer links -->
+            <div class="auth-footer-links">
+                <a href="#">Safety Tips</a>
+                <a href="#">Terms</a>
+                <a href="#">Privacy</a>
+                <a href="#">Support</a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-document.querySelectorAll('.role-option input').forEach(radio => {
-    radio.addEventListener('change', function() {
-        document.querySelectorAll('.role-option').forEach(el => el.classList.remove('selected'));
-        this.closest('.role-option').classList.add('selected');
-    });
-});
-</script>
+<script src="assets/js/auth.js"></script>
 </body>
 </html>

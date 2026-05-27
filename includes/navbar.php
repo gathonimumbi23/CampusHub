@@ -19,7 +19,11 @@
                 <?php if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
                     <?php if($_SESSION["role"] == 'Admin'): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="dashboard.php">Dashboard</a>
+                            <a class="nav-link" href="admin-dashboard.php">Admin Panel</a>
+                        </li>
+                    <?php elseif($_SESSION["role"] == 'Vendor'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="seller-dashboard.php">Seller Dashboard</a>
                         </li>
                     <?php endif; ?>
                     <li class="nav-item">
