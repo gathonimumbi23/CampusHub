@@ -8,9 +8,17 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true || $_SESSION
 }
 
 // Get vendor information
-$user_id = $_SESSION['user_id'];
+$user_id = $_SESSION['id'];
 $vendor_query = mysqli_query($link, "SELECT * FROM vendors WHERE user_id = '$user_id'");
 $vendor = mysqli_fetch_assoc($vendor_query);
+
+// If vendor profile doesn't exist yet, create one
+if(!$vendor){
+    mysqli_query($link, "INSERT INTO vendors (user_id, business_name, description) 
+        VALUES ('$user_id', '{$_SESSION['name']}\'s Shop', 'Welcome to my shop!')");
+    $vendor_query = mysqli_query($link, "SELECT * FROM vendors WHERE user_id = '$user_id'");
+    $vendor = mysqli_fetch_assoc($vendor_query);
+}
 $vendor_id = $vendor['vendor_id'];
 
 // Calculate vendor statistics
@@ -111,16 +119,39 @@ $status_breakdown = mysqli_query($link,
                 </div>
             </div>
 
-            <!-- Page Header -->
-            <div class="page-header">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p>Welcome back, <?php echo htmlspecialchars($vendor['business_name']); ?>! Here's what's happening today.</p>
-                </div>
-                <button class="btn-add-product" onclick="location.href='seller-products.php'">
-                    <i class="bi bi-plus"></i> Add New Product
-                </button>
-            </div>
+           <!-- Page Header -->
+<div class="page-header">
+    <div>
+        <!-- Greeting based on time of day -->
+        <?php
+        $hour = date('H');
+        if($hour < 12) $greeting = "Good Morning";
+        elseif($hour < 17) $greeting = "Good Afternoon";
+        else $greeting = "Good Evening";
+
+        $first_name = explode(' ', $_SESSION['name'])[0];
+        ?>
+        <h1><?php echo $greeting; ?>, <?php echo htmlspecialchars($first_name); ?>! 👋</h1>
+        <p style="font-size:16px; color:#666; margin-bottom:6px;">
+            Welcome to your seller dashboard — <strong><?php echo htmlspecialchars($vendor['business_name']); ?></strong> 🏪
+        </p>
+        <p style="font-size:14px; color:#888;">
+            <?php
+            $motivations = [
+                "Every great business started with one listing. Keep going! 🚀",
+                "Your campus community is waiting for what you offer! 💪",
+                "Today is a great day to make a sale! ⭐",
+                "You're building something amazing — one product at a time! 🌟",
+                "Campus entrepreneurs like you make CampusHub special! 🎓"
+            ];
+            echo $motivations[array_rand($motivations)];
+            ?>
+        </p>
+    </div>
+    <button class="btn-add-product" onclick="location.href='seller-products.php'">
+        <i class="bi bi-plus"></i> Add New Product
+    </button>
+</div>
 
             <!-- Stats Grid -->
             <div class="stats-grid">
@@ -147,7 +178,7 @@ $status_breakdown = mysqli_query($link,
                         <span class="stat-label">Revenue</span>
                         <i class="bi bi-currency-dollar"></i>
                     </div>
-                    <h2 class="stat-value">₦<?php echo number_format($total_revenue, 2); ?></h2>
+                    <h2 class="stat-value">KSHS<?php echo number_format($total_revenue, 2); ?></h2>
                     <p class="stat-change">Total earnings</p>
                 </div>
 
@@ -156,7 +187,7 @@ $status_breakdown = mysqli_query($link,
                         <span class="stat-label">This Week</span>
                         <i class="bi bi-calendar"></i>
                     </div>
-                    <h2 class="stat-value">₦<?php echo number_format($last_7_days_revenue, 2); ?></h2>
+                    <h2 class="stat-value">KSHS<?php echo number_format($last_7_days_revenue, 2); ?></h2>
                     <p class="stat-change positive">+12% from last week</p>
                 </div>
             </div>
@@ -237,7 +268,7 @@ $status_breakdown = mysqli_query($link,
                             <tr>
                                 <td><?php echo htmlspecialchars($product['name']); ?></td>
                                 <td><?php echo $product['sales'] ?? 0; ?> units</td>
-                                <td>₦<?php echo number_format($product['revenue'] ?? 0, 2); ?></td>
+                                <td>KSHSS<?php echo number_format($product['revenue'] ?? 0, 2); ?></td>
                                 <td><span class="badge badge-active">Active</span></td>
                             </tr>
                             <?php endwhile; ?>
@@ -270,7 +301,7 @@ $status_breakdown = mysqli_query($link,
                                 <td>#<?php echo $order['order_id']; ?></td>
                                 <td><?php echo htmlspecialchars($order['full_name']); ?></td>
                                 <td><?php echo date('M d, Y', strtotime($order['order_date'])); ?></td>
-                                <td>₦<?php echo number_format($order['total_amount'], 2); ?></td>
+                                <td>KSHS<?php echo number_format($order['total_amount'], 2); ?></td>
                                 <td>
                                     <span class="badge badge-<?php echo strtolower(str_replace(' ', '-', $order['status'])); ?>">
                                         <?php echo $order['status']; ?>

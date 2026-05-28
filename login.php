@@ -34,10 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             $_SESSION["role"]     = $role;
                             $_SESSION["name"]     = $full_name;
                             if ($role === 'Admin') {
-                                header("location: dashboard.php");
-                            } else {
-                                header("location: index.php");
-                            }
+    header("location: dashboard.php");
+} elseif ($role === 'Vendor') {
+    header("location: seller-dashboard.php");
+} else {
+    header("location: index.php");
+}
                             exit;
                         } else {
                             $login_err = "Invalid email or password.";
