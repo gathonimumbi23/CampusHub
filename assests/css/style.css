@@ -1,0 +1,79 @@
+/* 
+ * MKU Student Marketplace - Global Responsive Styles
+ * Theme: Sapphire Digital Blue (Glassmorphism + Deep Navy)
+ */
+
+:root {
+    --bg-deep-navy: #020617;
+    --bg-gradient: linear-gradient(135deg, #020617 0%, #070e27 50%, #0f172a 100%);
+    --glass-bg: rgba(15, 23, 42, 0.4);
+    --glass-border: rgba(59, 130, 246, 0.2);
+    --accent-blue: #2563eb;
+    --accent-indigo: #4f46e5;
+    --text-primary: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-slate: rgba(30, 41, 59, 0.5);
+}
+
+/* Global Typography & Scrollbar */
+html { scroll-behavior: smooth; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.4); }
+
+/* Custom Utilities to augment Tailwind */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+}
+
+/* ============================================================
+   MOBILE-APP TRANSFORMATION (SCREEN < 768px)
+   ============================================================ */
+
+@media (max-width: 768px) {
+    /* Tighten overall page constraints */
+    main {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 1.5rem !important;
+    }
+
+    /* Force full-width for all cards and sections */
+    .glass-card, 
+    section,
+    .grid {
+        width: 100% !important;
+        grid-template-columns: 1fr !important; /* Force stack */
+    }
+
+    /* Specific stacking for Side-by-Side Flex containers */
+    .flex-container {
+        flex-direction: column !important;
+    }
+
+    /* Expand all interactive elements for touch targets */
+    input, select, textarea, button {
+        width: 100% !important;
+        font-size: 16px !important; /* Prevent iOS auto-zoom */
+    }
+
+    /* Hero Section Scaling */
+    #hero-section {
+        height: auto !important;
+        min-height: 400px;
+    }
+    
+    #hero-section h1 {
+        font-size: 2.25rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* Nav hiding or stacking */
+    header nav {
+        display: none; /* Hide desktop nav on mobile to favor a mobile menu if added later */
+    }
+}
