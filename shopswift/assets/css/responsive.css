@@ -1,0 +1,449 @@
+/* ========================================
+   RESPONSIVE CSS - MOBILE FIRST
+   ======================================== */
+
+/* ========================================
+   1. MOBILE NAVIGATION (Hamburger Menu)
+   ======================================== */
+
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: var(--space-2);
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .nav-links {
+        position: fixed;
+        top: 60px;
+        left: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100vh;
+        background: var(--bg-primary);
+        flex-direction: column;
+        padding: var(--space-4);
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        overflow-y: auto;
+    }
+    
+    .nav-links.open {
+        left: 0;
+    }
+    
+    .nav-links a {
+        padding: var(--space-3) var(--space-4);
+        width: 100%;
+        border-radius: var(--radius-md);
+    }
+    
+    .nav-links a:hover {
+        background: var(--bg-hover);
+    }
+    
+    .nav-links .badge {
+        position: static;
+        margin-left: var(--space-2);
+    }
+    
+    /* Overlay for mobile menu */
+    .mobile-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+    
+    .mobile-overlay.active {
+        display: block;
+    }
+}
+
+/* ========================================
+   2. RESPONSIVE GRID SYSTEM
+   ======================================== */
+
+/* Mobile: single column on very small screens */
+@media (max-width: 480px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-2);
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .hero-text h1 {
+        font-size: var(--font-4xl);
+    }
+    
+    .hero-text h2 {
+        font-size: var(--font-3xl);
+    }
+    
+    .hero-image img {
+        height: 200px;
+    }
+    
+    .product-card .product-info h3 {
+        font-size: var(--font-sm);
+    }
+    
+    .product-card .product-price {
+        font-size: var(--font-base);
+    }
+    
+    .btn-cart {
+        font-size: var(--font-xs);
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .cart-drawer {
+        width: 100%;
+        right: -100%;
+    }
+    
+    .quick-view-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-view-image img {
+        height: 200px;
+    }
+}
+
+/* Mobile: 2 columns */
+@media (min-width: 481px) and (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+/* Tablet: 3 columns */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Desktop: 4 columns */
+@media (min-width: 1025px) {
+    .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .category-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+/* ========================================
+   3. RESPONSIVE CART PAGE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .cart-page-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .cart-summary {
+        position: static !important;
+    }
+    
+    .cart-item {
+        flex-wrap: wrap;
+    }
+    
+    .cart-item-image {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+/* ========================================
+   4. RESPONSIVE PROFILE PAGE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .profile-sidebar {
+        display: none;
+    }
+    
+    .profile-sidebar-mobile {
+        display: block;
+    }
+}
+
+.profile-sidebar-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .profile-sidebar-mobile {
+        display: block;
+        margin-bottom: var(--space-4);
+    }
+    
+    .profile-sidebar-mobile select {
+        width: 100%;
+        padding: var(--space-3);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-input);
+        color: var(--text-primary);
+        font-size: var(--font-base);
+    }
+}
+
+/* ========================================
+   5. RESPONSIVE FORMS
+   ======================================== */
+
+@media (max-width: 768px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    input, select, textarea, .input {
+        font-size: 16px !important; /* Prevent zoom on iOS */
+    }
+}
+
+/* ========================================
+   6. RESPONSIVE TABLES
+   ======================================== */
+
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-responsive table {
+        min-width: 600px;
+    }
+    
+    .table-responsive table th,
+    .table-responsive table td {
+        padding: var(--space-2);
+        font-size: var(--font-sm);
+    }
+}
+
+/* ========================================
+   7. RESPONSIVE MODAL
+   ======================================== */
+
+@media (max-width: 768px) {
+    .quick-view-content {
+        width: 95%;
+        padding: var(--space-4);
+        max-height: 95vh;
+    }
+    
+    .quick-view-actions {
+        flex-direction: column;
+    }
+    
+    .quick-view-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ========================================
+   8. RESPONSIVE FOOTER
+   ======================================== */
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .social-icons {
+        justify-content: center;
+    }
+}
+
+/* ========================================
+   9. RESPONSIVE CATEGORIES BAR
+   ======================================== */
+
+@media (max-width: 768px) {
+    .categories-bar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        padding: 0 var(--space-2);
+    }
+    
+    .categories-list {
+        flex-wrap: nowrap;
+        gap: 0;
+    }
+    
+    .categories-list > li > a {
+        padding: var(--space-2) var(--space-3);
+        font-size: var(--font-xs);
+    }
+    
+    .categories-list .dropdown-menu {
+        position: fixed;
+        top: auto;
+        left: var(--space-2);
+        right: var(--space-2);
+        width: auto;
+        min-width: auto;
+    }
+}
+
+/* ========================================
+   10. RESPONSIVE NEWSLETTER
+   ======================================== */
+
+@media (max-width: 768px) {
+    .newsletter-form {
+        flex-direction: column;
+    }
+    
+    .newsletter-form input,
+    .newsletter-form button {
+        width: 100%;
+        border-radius: var(--radius-md);
+    }
+    
+    .newsletter-form button {
+        margin-top: var(--space-2);
+    }
+}
+
+/* ========================================
+   11. TOUCH FRIENDLY - Larger touch targets
+   ======================================== */
+
+@media (max-width: 768px) {
+    button,
+    .btn,
+    a,
+    .wishlist-btn,
+    .cart-item-controls button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .btn-sm {
+        min-height: 36px;
+        min-width: 36px;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .product-card:hover {
+        transform: none;
+    }
+    
+    .product-card .product-image img:hover {
+        transform: none;
+    }
+}
+
+/* ========================================
+   12. LOADING STATES
+   ======================================== */
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    margin: -15px 0 0 -15px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--color-secondary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ========================================
+   13. SKELETON LOADING
+   ======================================== */
+
+.skeleton {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
